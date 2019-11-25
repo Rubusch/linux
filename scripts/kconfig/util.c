@@ -4,6 +4,8 @@
  * Copyright (C) 2002-2005 Sam Ravnborg <sam@ravnborg.org>
  */
 
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,6 +29,41 @@ struct file *file_lookup(const char *name)
 	file_list = file;
 	return file;
 }
+
+
+/* move a file, allows cross-device link */
+int file_move(const char* src, const char* dst)
+{
+	int fd_input, fd_output;
+	mode_t perm_file;
+	char buf[4096];
+	ssize_t num;
+
+	fd_input = open(src, O_RDONLY);
+	if (-1 == fd_input)
+		return 1;
+
+	perm_file = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+		fd_output = open(dst, O_CREAT | O_TRUNC | O_WRONLY, perm_file);
+	if (-1 == fd_output)
+		return 1;
+
+	while (0 < (num = read(fd_input, buf, BUF_SIZE)))
+		if (num != write(fd_output, buf, num))
+			return 1;
+
+	if (-1 == num)
+		return 1;
+	if (-1 == close(fd_input))
+		return 1;
+	if (-1 == close(fd_output))
+		return 1;
+
+	remove(src);
+
+	return 0;
+}
+
 
 /* Allocate initial growable string */
 struct gstr str_new(void)

@@ -1117,7 +1117,7 @@ int conf_write_autoconf(int overwrite)
 		name = "include/generated/autoconf.h";
 	if (make_parent_dir(name))
 		return 1;
-	if (rename(".tmpconfig.h", name))
+	if (file_move(".tmpconfig.h", name))
 		return 1;
 
 	name = getenv("KCONFIG_TRISTATE");
@@ -1125,7 +1125,7 @@ int conf_write_autoconf(int overwrite)
 		name = "include/config/tristate.conf";
 	if (make_parent_dir(name))
 		return 1;
-	if (rename(".tmpconfig_tristate", name))
+	if (file_move(".tmpconfig_tristate", name))
 		return 1;
 
 	if (make_parent_dir(autoconf_name))
@@ -1134,7 +1134,7 @@ int conf_write_autoconf(int overwrite)
 	 * This must be the last step, kbuild has a dependency on auto.conf
 	 * and this marks the successful completion of the previous steps.
 	 */
-	if (rename(".tmpconfig", autoconf_name))
+	if (file_move(".tmpconfig", autoconf_name))
 		return 1;
 
 	return 0;
